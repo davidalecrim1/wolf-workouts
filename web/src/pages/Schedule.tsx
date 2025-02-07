@@ -6,6 +6,7 @@ export const Schedule = () => {
         <div>
             <NavBar />
             <PageHeader title="Set schedule" />
+            <div>Maybe I can reuse the calendar component here?</div>
         </div>
     )
 }

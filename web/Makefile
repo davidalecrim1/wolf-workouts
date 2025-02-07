@@ -8,4 +8,7 @@ dev:
 	yarn start
 
 clean-cache:
+	rm -rf node_modules
+	rm yarn.lock
 	yarn cache clean
+	yarn install
