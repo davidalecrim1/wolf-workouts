@@ -3,7 +3,7 @@ export const NavBar = () => {
         <nav className="w-full bg-white shadow-md">
             <div className="px-6 py-4">
                 <div className="flex justify-between items-center">
-                    <span className="text-xl">Wild Workouts 🐗</span>
+                    <span className="text-xl">Wolf Workouts </span>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-4">
                             <a href="/trainings">Trainings</a>

@@ -1,4 +1,4 @@
-# Wild Workouts
+# Wolf Workouts
 
 This project is inspired in the requirements of the book [Go With The Domain](https://threedots.tech/go-with-the-domain/) from Three Dots Labs to provide a workout scheduling system.
 
@@ -12,7 +12,6 @@ This project is inspired in the requirements of the book [Go With The Domain](ht
 - DDD Lite
 - CQRS
 
-
 ## Technologies
 
 - Postgres Database
@@ -21,7 +20,7 @@ This project is inspired in the requirements of the book [Go With The Domain](ht
 - Swagger for REST API
 - React with Typescript for the frontend (UI)
 
-## Requirements
+## Requirements (Business Logic)
 
 ### Microservices
 
@@ -45,7 +44,7 @@ This project is inspired in the requirements of the book [Go With The Domain](ht
 - User-training relationships
 - Training state management
 
-### Trainer Application
+#### Trainer Application
 1. **Purpose**: Manages trainer availability and schedule
 - Handles trainer's calendar
 - Manages available/unavailable hours
@@ -62,3 +61,7 @@ This project is inspired in the requirements of the book [Go With The Domain](ht
 - Schedule management
 - Time slot management
 - Calendar operations
+
+#### Users
+
+// TODO

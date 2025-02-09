@@ -1,0 +1,103 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Wolf Workouts - Users API
+  description: API for users management
+  contact:
+    name: David Alecrim
+    url: https://github.com/davidalecrim1
+servers:
+  - url: https://{hostname}/api
+    variables:
+      hostname:
+        default: localhost
+security:
+  - bearerAuth: []
+paths:
+  /users:
+    post:
+      operationId: createUser
+      summary: Create a new user
+      description: Creates a new user with the provided name, email, and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created successfully
+        "400":
+          description: Invalid request body
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/components/schemas/ResponseError"
+  /users/login:
+    post:
+      operationId: loginUser
+      summary: Login a user
+      description: Logs in a user with the provided email and password
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/LoginUserRequest"
+      responses:
+        "200":
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginUserResponse"
+        "401":
+          description: Invalid email or password
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/components/schemas/ResponseError"
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - name
+        - email
+        - password
+    LoginUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+    LoginUserResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+    ResponseError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+
+securitySchemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT

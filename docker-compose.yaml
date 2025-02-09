@@ -1,0 +1,52 @@
+services:
+  users-db-postgres:
+    image: postgres:16.4-alpine3.20
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./scripts/database/user/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - users-db-postgres:/var/lib/postgresql/data
+    networks:
+      - wolf-workouts-network
+
+  pgadmin-ui:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "16543:80"
+    volumes:
+      - ~/.wolf-workouts-pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - users-db-postgres
+    networks:
+      - wolf-workouts-network
+
+  users-rest-api:
+    build:
+      context: ./internal/users
+      target: dev
+    volumes:
+      - ./internal/users:/app
+    environment:
+      - USERS_DATABASE_URL=${USERS_DATABASE_URL}
+      - USERS_API_PORT=${USERS_API_PORT}
+      - USERS_JWT_SECRET=${USERS_JWT_SECRET}
+    ports:
+      - "${USERS_API_PORT}:${USERS_API_PORT}"
+    depends_on:
+      - users-db-postgres
+    networks:
+      - wolf-workouts-network
+
+volumes:
+  users-db-postgres:
+
+networks:
+  wolf-workouts-network:
+    driver: bridge

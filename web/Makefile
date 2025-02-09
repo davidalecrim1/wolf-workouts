@@ -1,5 +1,5 @@
 create-ui:
-	yarn create react-app ./web --template typescript --name wild-workout-web-ui
+	yarn create react-app ./web --template typescript --name Wolf-workout-web-ui
 
 install:
 	yarn add react-router-dom @types/react-router-dom
