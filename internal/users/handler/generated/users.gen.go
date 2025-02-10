@@ -16,13 +16,18 @@ type CreateUserRequest struct {
 
 // LoginUserRequest defines model for LoginUserRequest.
 type LoginUserRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `binding:"required" form:"email" json:"email"`
+	Password string `binding:"required" form:"password" json:"password"`
 }
 
 // LoginUserResponse defines model for LoginUserResponse.
 type LoginUserResponse struct {
 	AccessToken *string `json:"access_token,omitempty"`
+}
+
+// ResponseError defines model for ResponseError.
+type ResponseError struct {
+	Message string `json:"message"`
 }
 
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.

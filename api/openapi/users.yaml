@@ -32,8 +32,10 @@ paths:
           description: Invalid request body
         "500":
           description: Internal server error
-          schema:
-            $ref: "#/components/schemas/ResponseError"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
   /users/login:
     post:
       operationId: loginUser
@@ -56,8 +58,10 @@ paths:
           description: Invalid email or password
         "500":
           description: Internal server error
-          schema:
-            $ref: "#/components/schemas/ResponseError"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
 components:
   schemas:
     CreateUserRequest:
@@ -78,8 +82,14 @@ components:
       properties:
         email:
           type: string
+          x-oapi-codegen-extra-tags:
+            form: "email"
+            binding: "required"
         password:
           type: string
+          x-oapi-codegen-extra-tags:
+            form: "password"
+            binding: "required"
       required:
         - email
         - password
@@ -96,8 +106,8 @@ components:
         message:
           type: string
 
-securitySchemes:
-  bearerAuth:
-    type: http
-    scheme: bearer
-    bearerFormat: JWT
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

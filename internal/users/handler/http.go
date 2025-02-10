@@ -2,10 +2,11 @@ package handler
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/davidalecrim1/wolf-workouts/internal/users/app"
-	"github.com/davidalecrim1/wolf-workouts/internal/users/handler/generated"
+	gen "github.com/davidalecrim1/wolf-workouts/internal/users/handler/generated"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,21 +24,24 @@ func (h *UserHandler) RegisterRoutes(router *gin.Engine) {
 }
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	var userRequest generated.CreateUserRequest
+	var userRequest gen.CreateUserRequest
 	if err := c.ShouldBind(&userRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		slog.Error("failed to create user", "error", err)
+		c.JSON(http.StatusBadRequest, gen.ResponseError{Message: err.Error()})
 		return
 	}
 
 	u, err := app.NewUser(userRequest.Name, userRequest.Email, userRequest.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		slog.Error("failed to create user", "error", err)
+		c.JSON(http.StatusBadRequest, gen.ResponseError{Message: err.Error()})
 		return
 	}
 
 	err = h.svc.CreateUser(c.Request.Context(), u)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		slog.Error("failed to create user", "error", err)
+		c.JSON(http.StatusInternalServerError, gen.ResponseError{Message: err.Error()})
 		return
 	}
 
@@ -45,22 +49,25 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 }
 
 func (h *UserHandler) LoginUser(c *gin.Context) {
-	var req generated.LoginUserRequest
+	var req gen.LoginUserRequest
 	if err := c.ShouldBind(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		slog.Error("failed to login user", "error", err)
+		c.JSON(http.StatusBadRequest, gen.ResponseError{Message: err.Error()})
 		return
 	}
 
 	token, err := h.svc.LoginUser(c.Request.Context(), req.Email, req.Password)
 	if errors.Is(err, app.ErrInvalidEmailOrPassword) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		slog.Debug("invalid email or password", "email", req.Email, "error", err)
+		c.JSON(http.StatusUnauthorized, gen.ResponseError{Message: err.Error()})
 		return
 	}
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		slog.Error("failed to login user", "error", err)
+		c.JSON(http.StatusInternalServerError, gen.ResponseError{Message: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"access_token": token})
+	c.JSON(http.StatusOK, gen.LoginUserResponse{AccessToken: &token})
 }

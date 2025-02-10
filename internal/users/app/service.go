@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/davidalecrim1/wolf-workouts/internal/users/config"
@@ -36,7 +35,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *User) error {
 func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	user, err := s.userRepository.GetUserByEmail(ctx, email)
 	if err != nil {
-		return nil, errors.Join(err, ErrInvalidEmailOrPassword)
+		return nil, ErrInvalidEmailOrPassword
 	}
 
 	return user, nil
@@ -45,7 +44,7 @@ func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*User, 
 func (s *UserService) LoginUser(ctx context.Context, email string, password string) (string, error) {
 	u, err := s.userRepository.GetUserByEmail(ctx, email)
 	if err != nil {
-		return "", errors.Join(err, ErrInvalidEmailOrPassword)
+		return "", ErrInvalidEmailOrPassword
 	}
 
 	if !u.IsPasswordCorrect(password) {
@@ -63,6 +62,11 @@ func (s *UserService) generateToken(u *User) (string, error) {
 			"exp":     time.Now().Add(time.Hour * 24).Unix(),
 		},
 	)
+
+	token.Header = map[string]interface{}{
+		"alg": "HS256",
+		"typ": "JWT",
+	}
 
 	tokenString, err := token.SignedString(s.config.GetJWTSecret())
 	if err != nil {

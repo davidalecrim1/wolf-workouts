@@ -8,7 +8,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./scripts/database/user/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./scripts/database/users/schema.sql:/docker-entrypoint-initdb.d/schema.sql
       - users-db-postgres:/var/lib/postgresql/data
     networks:
       - wolf-workouts-network
@@ -37,6 +37,7 @@ services:
       - USERS_DATABASE_URL=${USERS_DATABASE_URL}
       - USERS_API_PORT=${USERS_API_PORT}
       - USERS_JWT_SECRET=${USERS_JWT_SECRET}
+      - LOG_LEVEL=${LOG_LEVEL}
     ports:
       - "${USERS_API_PORT}:${USERS_API_PORT}"
     depends_on:

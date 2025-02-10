@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/davidalecrim1/wolf-workouts/internal/users/adapter"
@@ -15,9 +15,15 @@ import (
 )
 
 func main() {
+	logLevel := adapter.GetLogLevel(os.Getenv("LOG_LEVEL"))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: logLevel,
+	}))
+	slog.SetDefault(logger)
+
 	db, err := sqlx.Connect("postgres", os.Getenv("USERS_DATABASE_URL"))
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		slog.Error("Failed to connect to database", "error", err)
 	}
 	defer db.Close()
 

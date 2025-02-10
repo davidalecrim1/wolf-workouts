@@ -59,7 +59,7 @@ func createTestDatabase(ctx context.Context) (container *testcontainerPostgres.P
 }
 
 func loadDatabaseSchema(ctx context.Context) {
-	schema, err := os.ReadFile("../../../scripts/database/user/schema.sql")
+	schema, err := os.ReadFile("../../../scripts/database/users/schema.sql")
 	if err != nil {
 		log.Fatalf("failed to read schema file: %v", err)
 	}
