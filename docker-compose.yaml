@@ -9,7 +9,6 @@ services:
       - "5432:5432"
     volumes:
       - ./scripts/database/users/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-      - users-db-postgres:/var/lib/postgresql/data
     networks:
       - wolf-workouts-network
 
@@ -44,9 +43,6 @@ services:
       - users-db-postgres
     networks:
       - wolf-workouts-network
-
-volumes:
-  users-db-postgres:
 
 networks:
   wolf-workouts-network:

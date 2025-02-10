@@ -7,12 +7,22 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// Defines values for CreateUserRequestRole.
+const (
+	Trainee CreateUserRequestRole = "trainee"
+	Trainer CreateUserRequestRole = "trainer"
+)
+
 // CreateUserRequest defines model for CreateUserRequest.
 type CreateUserRequest struct {
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	Email    string                `json:"email"`
+	Name     string                `json:"name"`
+	Password string                `json:"password"`
+	Role     CreateUserRequestRole `json:"role"`
 }
+
+// CreateUserRequestRole defines model for CreateUserRequest.Role.
+type CreateUserRequestRole string
 
 // LoginUserRequest defines model for LoginUserRequest.
 type LoginUserRequest struct {

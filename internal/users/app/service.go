@@ -60,6 +60,7 @@ func (s *UserService) generateToken(u *User) (string, error) {
 		jwt.MapClaims{
 			"user_id": u.ID,
 			"exp":     time.Now().Add(time.Hour * 24).Unix(),
+			"role":    u.Role.String(),
 		},
 	)
 

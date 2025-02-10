@@ -73,10 +73,16 @@ components:
           type: string
         password:
           type: string
+        role:
+          type: string
+          enum:
+            - trainee
+            - trainer
       required:
         - name
         - email
         - password
+        - role
     LoginUserRequest:
       type: object
       properties:

@@ -15,6 +15,7 @@ type userModel struct {
 	ID             string    `db:"uuid"`
 	Name           string    `db:"name"`
 	Email          string    `db:"email"`
+	Role           string    `db:"role"`
 	HashedPassword string    `db:"hashed_password"`
 	CreatedAt      time.Time `db:"created_at"`
 	UpdatedAt      time.Time `db:"updated_at"`
@@ -30,10 +31,16 @@ func NewPostgresUserRepository(db *sqlx.DB) *PostgresUserRepository {
 
 func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *app.User) error {
 	query := `
-		INSERT INTO public.users (uuid, name, email, hashed_password)
-		VALUES (:uuid, :name, :email, :hashed_password)
+		INSERT INTO public.users (uuid, name, email, role, hashed_password)
+		VALUES (:uuid, :name, :email, :role, :hashed_password)
 	`
-	_, err := r.db.NamedExecContext(ctx, query, r.mapUserToUserModel(user))
+	userModel, err := r.mapUserToUserModel(user)
+	if err != nil {
+		slog.Error("failed to create user", "error", err)
+		return err
+	}
+
+	_, err = r.db.NamedExecContext(ctx, query, userModel)
 	if err != nil {
 		slog.Error("failed to create user", "error", err)
 		return err
@@ -43,7 +50,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *app.User)
 }
 
 func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email string) (*app.User, error) {
-	query := `SELECT uuid, name, email, hashed_password, created_at, updated_at FROM users WHERE email = $1`
+	query := `SELECT uuid, name, email, role, hashed_password, created_at, updated_at FROM users WHERE email = $1`
 	var userModel userModel
 	err := r.db.GetContext(ctx, &userModel, query, email)
 
@@ -56,23 +63,35 @@ func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email strin
 		slog.Error("failed to get user by email", "error", err)
 		return nil, err
 	}
-	return r.mapUserModelToUser(userModel), nil
+	return r.mapUserModelToUser(userModel)
 }
 
-func (r *PostgresUserRepository) mapUserModelToUser(userModel userModel) *app.User {
+func (r *PostgresUserRepository) mapUserModelToUser(userModel userModel) (*app.User, error) {
+	role, err := app.ParseRole(userModel.Role)
+	if err != nil {
+		return nil, err
+	}
+
 	return &app.User{
 		ID:             userModel.ID,
 		Name:           userModel.Name,
 		Email:          userModel.Email,
 		HashedPassword: userModel.HashedPassword,
-	}
+		Role:           role,
+	}, nil
 }
 
-func (r *PostgresUserRepository) mapUserToUserModel(user *app.User) userModel {
+func (r *PostgresUserRepository) mapUserToUserModel(user *app.User) (userModel, error) {
+	role, err := app.ParseRole(user.Role.String())
+	if err != nil {
+		return userModel{}, err
+	}
+
 	return userModel{
 		ID:             user.ID,
 		Name:           user.Name,
 		Email:          user.Email,
+		Role:           role.String(),
 		HashedPassword: user.HashedPassword,
-	}
+	}, nil
 }

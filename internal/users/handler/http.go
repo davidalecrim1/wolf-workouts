@@ -31,7 +31,12 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	u, err := app.NewUser(userRequest.Name, userRequest.Email, userRequest.Password)
+	u, err := app.NewUser(
+		userRequest.Name,
+		userRequest.Email,
+		userRequest.Password,
+		string(userRequest.Role),
+	)
 	if err != nil {
 		slog.Error("failed to create user", "error", err)
 		c.JSON(http.StatusBadRequest, gen.ResponseError{Message: err.Error()})

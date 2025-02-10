@@ -73,7 +73,7 @@ func loadDatabaseSchema(ctx context.Context) {
 func TestPostgresUserRepository_CreateUser(t *testing.T) {
 	repo := NewPostgresUserRepository(db)
 
-	user, err := app.NewUser("John Doe", "john.doe@example.com", "password")
+	user, err := app.NewUser("John Doe", "john.doe@example.com", "password", "trainee")
 	require.NoError(t, err)
 
 	err = repo.CreateUser(context.Background(), user)

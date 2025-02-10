@@ -25,9 +25,9 @@ func createTestService(t *testing.T) (*UserService, *FakeUserRepository) {
 	return NewUserService(repo, c), repo
 }
 
-func createTestUser(t *testing.T, svc *UserService, email, password string) *User {
+func createTestUser(t *testing.T, svc *UserService, email, password string, roleString string) *User {
 	t.Helper()
-	user, err := NewUser("John Doe", email, password)
+	user, err := NewUser("John Doe", email, password, roleString)
 	require.NoError(t, err)
 	require.NoError(t, svc.CreateUser(context.Background(), user))
 	return user
@@ -38,7 +38,7 @@ func TestUserService_CreateUser(t *testing.T) {
 
 	t.Run("should create a user", func(t *testing.T) {
 		svc, repo := createTestService(t)
-		user := createTestUser(t, svc, "john.doe@example.com", "password")
+		user := createTestUser(t, svc, "john.doe@example.com", "password", "trainee")
 
 		createdUser, err := repo.GetUserByEmail(context.Background(), user.Email)
 		require.NoError(t, err)
@@ -47,7 +47,7 @@ func TestUserService_CreateUser(t *testing.T) {
 
 	t.Run("should return an error if the user does not exist", func(t *testing.T) {
 		svc, _ := createTestService(t)
-		user, err := NewUser("John Doe", "john.doe@example.com", "password")
+		user, err := NewUser("John Doe", "john.doe@example.com", "password", "trainee")
 		require.NoError(t, err)
 
 		invalidEmail := "invalid_email"
@@ -57,9 +57,16 @@ func TestUserService_CreateUser(t *testing.T) {
 		require.True(t, errors.Is(err, ErrInvalidEmailOrPassword))
 	})
 
+	t.Run("should not allow invalid roles", func(t *testing.T) {
+		user, err := NewUser("John Doe", "john.doe@example.com", "password", "invalid_role")
+		require.Error(t, err)
+		require.ErrorIs(t, err, ErrInvalidRole)
+		require.Nil(t, user)
+	})
+
 	t.Run("should be able to login a user", func(t *testing.T) {
 		svc, _ := createTestService(t)
-		_ = createTestUser(t, svc, "john.doe@example.com", "password")
+		_ = createTestUser(t, svc, "john.doe@example.com", "password", "trainee")
 
 		token, err := svc.LoginUser(context.Background(), "john.doe@example.com", "password")
 		require.NoError(t, err)
@@ -68,7 +75,7 @@ func TestUserService_CreateUser(t *testing.T) {
 
 	t.Run("should return an error if the password is incorrect", func(t *testing.T) {
 		svc, _ := createTestService(t)
-		_ = createTestUser(t, svc, "john.doe@example.com", "password")
+		_ = createTestUser(t, svc, "john.doe@example.com", "password", "trainee")
 
 		token, err := svc.LoginUser(context.Background(), "john.doe@example.com", "wrong_password")
 		require.True(t, errors.Is(err, ErrInvalidEmailOrPassword))
@@ -78,7 +85,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	t.Run("shouldn't be able to see the user password", func(t *testing.T) {
 		svc, _ := createTestService(t)
 		providedPassword := "password"
-		_ = createTestUser(t, svc, "john.doe@example.com", providedPassword)
+		_ = createTestUser(t, svc, "john.doe@example.com", providedPassword, "trainee")
 
 		savedUser, err := svc.GetUserByEmail(context.Background(), "john.doe@example.com")
 		require.NoError(t, err)
@@ -95,7 +102,7 @@ func TestUserService_CreateUser(t *testing.T) {
 
 	t.Run("should detect existing user", func(t *testing.T) {
 		svc, repo := createTestService(t)
-		registeredUser := createTestUser(t, svc, "exists@test.com", "pass")
+		registeredUser := createTestUser(t, svc, "exists@test.com", "password", "trainee")
 
 		foundUser, err := repo.GetUserByEmail(context.Background(), registeredUser.Email)
 
