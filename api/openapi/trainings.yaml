@@ -1,0 +1,63 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Wolf Workouts - Trainings API
+  description: API for trainings management
+  contact:
+    name: David Alecrim
+    url: https://github.com/davidalecrim1
+servers:
+  - url: https://{hostname}/api
+    variables:
+      hostname:
+        default: localhost
+security:
+  - bearerAuth: []
+paths:
+  /trainings:
+    post:
+      operationId: scheduleTraining
+      summary: Schedule a new training
+      description: Schedules a new training
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleTrainingRequest"
+      responses:
+        "201":
+          description: Training scheduled successfully
+        "400":
+          description: Invalid request body
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+components:
+  schemas:
+    ScheduleTrainingRequest:
+      type: object
+      properties:
+        training_datetime:
+          type: string
+          format: date-time
+        notes:
+          type: string
+      required:
+        - training_datetime
+        - notes
+    ResponseError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

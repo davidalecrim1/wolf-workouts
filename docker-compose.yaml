@@ -2,13 +2,26 @@ services:
   users-db-postgres:
     image: postgres:16.4-alpine3.20
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${USERS_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${USERS_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${USERS_POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - ./scripts/database/users/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - wolf-workouts-network
+
+  trainings-db-postgres:
+    image: postgres:16.4-alpine3.20
+    environment:
+      POSTGRES_USER: ${TRAININGS_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${TRAININGS_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${TRAININGS_POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./scripts/database/trainings/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - wolf-workouts-network
 
@@ -41,6 +54,24 @@ services:
       - "${USERS_API_PORT}:${USERS_API_PORT}"
     depends_on:
       - users-db-postgres
+    networks:
+      - wolf-workouts-network
+
+  trainings-rest-api:
+    build:
+      context: ./internal/trainings
+      target: dev
+    volumes:
+      - ./internal/trainings:/app
+    environment:
+      - TRAININGS_DATABASE_URL=${TRAININGS_DATABASE_URL}
+      - TRAININGS_API_PORT=${TRAININGS_API_PORT}
+      - TRAININGS_JWT_SECRET=${TRAININGS_JWT_SECRET}
+      - LOG_LEVEL=${LOG_LEVEL}
+    ports:
+      - "${TRAININGS_API_PORT}:${TRAININGS_API_PORT}"
+    depends_on:
+      - trainings-db-postgres
     networks:
       - wolf-workouts-network
 

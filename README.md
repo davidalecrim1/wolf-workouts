@@ -64,4 +64,9 @@ This project is inspired in the requirements of the book [Go With The Domain](ht
 
 #### Users
 
+## Security
+The microservices rely on a issue of a JWT (JSON Web Token) using the HMAC (Keyed-Hashing for Message Authentication). This is a symmetric algorithm which relies on a secret to encode and validate the issued token between the microservices.
+
+A future improvement could be to use the RSA asymmetric encrypt.
+
 // TODO
