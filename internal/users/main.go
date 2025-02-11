@@ -34,6 +34,8 @@ func main() {
 	userHandler := handler.NewUserHandler(userService)
 
 	router := gin.Default()
+	router.Use(gin.Recovery())
+
 	server := server.NewServer(db, os.Getenv("USERS_API_PORT"), router)
 
 	server.RegisterRoutes(router)

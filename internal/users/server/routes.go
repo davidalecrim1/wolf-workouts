@@ -17,5 +17,5 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	r.GET("/health", s.HealthCheck)
+	r.GET("/healthz", s.HealthCheck)
 }

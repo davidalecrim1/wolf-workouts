@@ -14,5 +14,4 @@ COPY .air.toml ./
 
 VOLUME ["/app"]
 
-EXPOSE 8090
 CMD ["air", "-c", ".air.toml"]

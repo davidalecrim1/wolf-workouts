@@ -26,15 +26,17 @@ func TestMain(m *testing.M) {
 }
 
 func TestPostgresUserRepository_CreateUser(t *testing.T) {
-	repo := NewPostgresUserRepository(db)
+	t.Run("should create a user", func(t *testing.T) {
+		repo := NewPostgresUserRepository(db)
 
-	user, err := app.NewUser("John Doe", "john.doe@example.com", "password", "trainee")
-	require.NoError(t, err)
+		user, err := app.NewUser("John Doe", "john.doe@example.com", "password", "trainee")
+		require.NoError(t, err)
 
-	err = repo.CreateUser(context.Background(), user)
-	require.NoError(t, err)
+		err = repo.CreateUser(context.Background(), user)
+		require.NoError(t, err)
 
-	createdUser, err := repo.GetUserByEmail(context.Background(), "john.doe@example.com")
-	require.NoError(t, err)
-	require.Equal(t, user, createdUser)
+		createdUser, err := repo.GetUserByEmail(context.Background(), "john.doe@example.com")
+		require.NoError(t, err)
+		require.Equal(t, user, createdUser)
+	})
 }
