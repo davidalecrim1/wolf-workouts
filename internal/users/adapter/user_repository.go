@@ -9,7 +9,10 @@ import (
 
 	"github.com/davidalecrim1/wolf-workouts/internal/users/app"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
+
+var postgresUniqueViolationErrorCode = "23505"
 
 type userModel struct {
 	ID             string    `db:"uuid"`
@@ -36,12 +39,19 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *app.User)
 	`
 	userModel, err := r.mapUserToUserModel(user)
 	if err != nil {
-		slog.Error("failed to create user", "error", err)
+		slog.Error("failed to map user to userModel", "error", err)
 		return err
 	}
 
 	_, err = r.db.NamedExecContext(ctx, query, userModel)
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			if pqErr.Code == pq.ErrorCode(postgresUniqueViolationErrorCode) {
+				slog.Error("user already exists", "email", user.Email)
+				return app.ErrUserAlreadyExists
+			}
+		}
 		slog.Error("failed to create user", "error", err)
 		return err
 	}
@@ -63,35 +73,36 @@ func (r *PostgresUserRepository) GetUserByEmail(ctx context.Context, email strin
 		slog.Error("failed to get user by email", "error", err)
 		return nil, err
 	}
-	return r.mapUserModelToUser(userModel)
+
+	return r.mapUserModelToUser(&userModel)
 }
 
-func (r *PostgresUserRepository) mapUserModelToUser(userModel userModel) (*app.User, error) {
-	role, err := app.ParseRole(userModel.Role)
+func (r *PostgresUserRepository) mapUserModelToUser(u *userModel) (*app.User, error) {
+	role, err := app.ParseRole(u.Role)
 	if err != nil {
 		return nil, err
 	}
 
 	return &app.User{
-		ID:             userModel.ID,
-		Name:           userModel.Name,
-		Email:          userModel.Email,
-		HashedPassword: userModel.HashedPassword,
+		ID:             u.ID,
+		Name:           u.Name,
+		Email:          u.Email,
+		HashedPassword: u.HashedPassword,
 		Role:           role,
 	}, nil
 }
 
-func (r *PostgresUserRepository) mapUserToUserModel(user *app.User) (userModel, error) {
-	role, err := app.ParseRole(user.Role.String())
+func (r *PostgresUserRepository) mapUserToUserModel(u *app.User) (*userModel, error) {
+	role, err := app.ParseRole(u.Role.String())
 	if err != nil {
-		return userModel{}, err
+		return nil, err
 	}
 
-	return userModel{
-		ID:             user.ID,
-		Name:           user.Name,
-		Email:          user.Email,
+	return &userModel{
+		ID:             u.ID,
+		Name:           u.Name,
+		Email:          u.Email,
 		Role:           role.String(),
-		HashedPassword: user.HashedPassword,
+		HashedPassword: u.HashedPassword,
 	}, nil
 }

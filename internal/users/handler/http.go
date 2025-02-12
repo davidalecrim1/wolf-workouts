@@ -24,18 +24,18 @@ func (h *UserHandler) RegisterRoutes(router *gin.Engine) {
 }
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	var userRequest gen.CreateUserRequest
-	if err := c.ShouldBind(&userRequest); err != nil {
+	var req gen.CreateUserRequest
+	if err := c.ShouldBind(&req); err != nil {
 		slog.Error("failed to create user", "error", err)
 		c.JSON(http.StatusBadRequest, gen.ResponseError{Message: err.Error()})
 		return
 	}
 
 	u, err := app.NewUser(
-		userRequest.Name,
-		userRequest.Email,
-		userRequest.Password,
-		string(userRequest.Role),
+		req.Name,
+		req.Email,
+		req.Password,
+		string(req.Role),
 	)
 	if err != nil {
 		slog.Error("failed to create user", "error", err)
@@ -44,6 +44,12 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 
 	err = h.svc.CreateUser(c.Request.Context(), u)
+	if errors.Is(err, app.ErrUserAlreadyExists) {
+		slog.Error("user already exists", "email", req.Email)
+		c.JSON(http.StatusBadRequest, gen.ResponseError{Message: err.Error()})
+		return
+	}
+
 	if err != nil {
 		slog.Error("failed to create user", "error", err)
 		c.JSON(http.StatusInternalServerError, gen.ResponseError{Message: err.Error()})

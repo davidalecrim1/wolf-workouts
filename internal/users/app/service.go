@@ -2,11 +2,14 @@ package app
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/davidalecrim1/wolf-workouts/internal/users/config"
 	"github.com/dgrijalva/jwt-go"
 )
+
+var ErrUserAlreadyExists = errors.New("user already exists")
 
 type UserService struct {
 	userRepository UserRepository
