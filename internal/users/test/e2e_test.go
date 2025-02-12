@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -14,6 +15,7 @@ import (
 	"github.com/davidalecrim1/wolf-workouts/internal/users/app"
 	"github.com/davidalecrim1/wolf-workouts/internal/users/config"
 	"github.com/davidalecrim1/wolf-workouts/internal/users/handler"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
@@ -62,7 +64,7 @@ func TestE2E(t *testing.T) {
 		_ = createUser(t, ts, reqBody)
 	})
 
-	t.Run("should login a user", func(t *testing.T) {
+	t.Run("should login a user and return a valid token", func(t *testing.T) {
 		t.Parallel()
 
 		createUserReqBody := map[string]interface{}{
@@ -88,6 +90,12 @@ func TestE2E(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, res.Body.Close())
 		require.NotEmpty(t, loginResponse["access_token"])
+
+		assertTokenIsValid(t,
+			loginResponse["access_token"].(string),
+			createUserReqBody["name"].(string),
+			createUserReqBody["role"].(string),
+		)
 	})
 }
 
@@ -128,4 +136,40 @@ func loginUserRequest(t *testing.T, ts *httptest.Server, formData url.Values) *h
 	require.NoError(t, err)
 
 	return res
+}
+
+func assertTokenIsValid(t *testing.T, token string, name string, role string) {
+	config := config.NewConfig(os.Getenv("USERS_JWT_SECRET"))
+
+	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %s", t.Header["alg"])
+		}
+
+		_, ok := t.Claims.(jwt.MapClaims)
+		if !ok {
+			return nil, fmt.Errorf("invalid token claims")
+		}
+
+		return config.GetJWTSecret(), nil
+	})
+	require.NoError(t, err)
+	require.True(t, parsedToken.Valid)
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	require.True(t, ok)
+
+	userID, ok := claims["sub"].(string)
+	require.True(t, ok)
+	require.NotEmpty(t, userID)
+
+	username, ok := claims["user_name"].(string)
+	require.True(t, ok)
+	require.NotEmpty(t, username)
+	require.Equal(t, name, username)
+
+	userRole, ok := claims["user_role"].(string)
+	require.True(t, ok)
+	require.NotEmpty(t, userRole)
+	require.Equal(t, role, userRole)
 }
