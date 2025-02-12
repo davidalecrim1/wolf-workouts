@@ -26,7 +26,6 @@ func TestScheduleTraining(t *testing.T) {
 			commandFactory: func(t *testing.T) *ScheduleTrainingCommand {
 				return &ScheduleTrainingCommand{
 					UserID:           uuid.New().String(),
-					Username:         "John Doe",
 					Notes:            "This is a test training",
 					TrainingDateTime: time.Now(),
 				}

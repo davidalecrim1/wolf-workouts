@@ -36,6 +36,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResponseError"
+    get:
+      operationId: getTrainings
+      summary: Get all trainings
+      description: Retrieves all trainings for the authenticated user
+      responses:
+        "200":
+          description: Trainings retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetTrainingsResponse"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
 components:
   schemas:
     ScheduleTrainingRequest:
@@ -56,6 +73,20 @@ components:
       properties:
         message:
           type: string
+    GetTrainingsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/Training"
+    Training:
+      type: object
+      properties:
+        id:
+          type: string
+        notes:
+          type: string
+        training_datetime:
+          type: string
+          format: date-time
   securitySchemes:
     bearerAuth:
       type: http

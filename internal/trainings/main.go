@@ -6,6 +6,7 @@ import (
 
 	"github.com/davidalecrim1/wolf-workouts/internal/trainings/adapters"
 	"github.com/davidalecrim1/wolf-workouts/internal/trainings/app/command"
+	"github.com/davidalecrim1/wolf-workouts/internal/trainings/app/queries"
 	"github.com/davidalecrim1/wolf-workouts/internal/trainings/config"
 	"github.com/davidalecrim1/wolf-workouts/internal/trainings/handler"
 	"github.com/davidalecrim1/wolf-workouts/internal/trainings/server"
@@ -30,10 +31,13 @@ func main() {
 
 	config := config.NewConfig(os.Getenv("TRAININGS_JWT_SECRET"))
 
-	trainingRepository := adapters.NewPostgresTrainingsRepository(db)
-	commandTrainingHandler := command.NewTrainingCommandHandler(trainingRepository)
-	// TODO: Create query training handler
-	httpTrainingHandler := handler.NewHttpTrainingHandler(commandTrainingHandler)
+	trainingsCommandRepository := adapters.NewPostgresTrainingsCommandsRepository(db)
+	commandTrainingHandler := command.NewTrainingCommandHandler(trainingsCommandRepository)
+
+	trainingsQueriesRepository := adapters.NewPostgresTrainingsQueriesRepository(db)
+	queriesTrainingHandler := queries.NewTrainingQueriesHandler(trainingsQueriesRepository)
+
+	httpTrainingHandler := handler.NewHttpTrainingHandler(commandTrainingHandler, queriesTrainingHandler)
 
 	router := gin.Default()
 	authMiddleware := handler.AuthMiddleware(config)

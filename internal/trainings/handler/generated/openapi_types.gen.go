@@ -11,6 +11,9 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// GetTrainingsResponse defines model for GetTrainingsResponse.
+type GetTrainingsResponse = []Training
+
 // ResponseError defines model for ResponseError.
 type ResponseError struct {
 	Message string `json:"message"`
@@ -20,6 +23,13 @@ type ResponseError struct {
 type ScheduleTrainingRequest struct {
 	Notes            string    `json:"notes"`
 	TrainingDatetime time.Time `json:"training_datetime"`
+}
+
+// Training defines model for Training.
+type Training struct {
+	Id               *string    `json:"id,omitempty"`
+	Notes            *string    `json:"notes,omitempty"`
+	TrainingDatetime *time.Time `json:"training_datetime,omitempty"`
 }
 
 // ScheduleTrainingJSONRequestBody defines body for ScheduleTraining for application/json ContentType.

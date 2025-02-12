@@ -8,7 +8,6 @@ DROP TABLE IF EXISTS trainings;
 CREATE TABLE IF NOT EXISTS trainings (
     uuid uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id uuid NOT NULL,
-    username TEXT NOT NULL,
     training_datetime TIMESTAMP NOT NULL,
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

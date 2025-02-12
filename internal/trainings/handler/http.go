@@ -6,23 +6,22 @@ import (
 	"net/http"
 
 	"github.com/davidalecrim1/wolf-workouts/internal/trainings/app/command"
+	"github.com/davidalecrim1/wolf-workouts/internal/trainings/app/queries"
 	gen "github.com/davidalecrim1/wolf-workouts/internal/trainings/handler/generated"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
-// TODO: REST API FOR REACT
-
-// TODO: Create auth middleware
-
-// TODO: Create handler for schedule training
-
 type HttpTrainingHandler struct {
 	commandHandler *command.TrainingCommandHandler
+	queriesHandler *queries.TrainingQueriesHandler
 }
 
-func NewHttpTrainingHandler(commandHandler *command.TrainingCommandHandler) *HttpTrainingHandler {
-	return &HttpTrainingHandler{commandHandler: commandHandler}
+func NewHttpTrainingHandler(c *command.TrainingCommandHandler, q *queries.TrainingQueriesHandler) *HttpTrainingHandler {
+	return &HttpTrainingHandler{
+		commandHandler: c,
+		queriesHandler: q,
+	}
 }
 
 func (h *HttpTrainingHandler) ScheduleTraining(c *gin.Context) {
@@ -33,7 +32,7 @@ func (h *HttpTrainingHandler) ScheduleTraining(c *gin.Context) {
 		return
 	}
 
-	userID, username, err := getUserDataFromContext(c)
+	userID, err := getUserIDFromContext(c)
 	if err != nil {
 		slog.Error("ScheduleTraining - failed to get user data", "error", err)
 		c.JSON(http.StatusUnauthorized, gen.ResponseError{Message: "Unauthorized"})
@@ -42,7 +41,6 @@ func (h *HttpTrainingHandler) ScheduleTraining(c *gin.Context) {
 
 	cmd := command.ScheduleTrainingCommand{
 		UserID:           userID,
-		Username:         username,
 		TrainingDateTime: req.TrainingDatetime,
 		Notes:            req.Notes,
 	}
@@ -56,30 +54,53 @@ func (h *HttpTrainingHandler) ScheduleTraining(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func getUserDataFromContext(c *gin.Context) (userID string, username string, err error) {
+func (h *HttpTrainingHandler) GetTrainings(c *gin.Context) {
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		slog.Error("GetTrainings - failed to get user data", "error", err)
+		c.JSON(http.StatusUnauthorized, gen.ResponseError{Message: "Unauthorized"})
+		return
+	}
+
+	trainings, err := h.queriesHandler.FindTrainingsForUser(c.Request.Context(), userID)
+	if err != nil {
+		slog.Error("GetTrainings - failed to get trainings", "error", err)
+		c.JSON(http.StatusInternalServerError, gen.ResponseError{Message: err.Error()})
+		return
+	}
+
+	responseTrainings := make([]gen.Training, len(trainings))
+	for i, training := range trainings {
+		responseTrainings[i] = gen.Training{
+			Id:               &training.ID,
+			Notes:            &training.Notes,
+			TrainingDatetime: &training.TrainingDateTime,
+		}
+	}
+
+	c.JSON(http.StatusOK, responseTrainings)
+}
+
+func getUserIDFromContext(c *gin.Context) (userID string, err error) {
 	claims, ok := c.Get(JWT_CLAIMS_KEY)
 	if !ok {
-		return "", "", fmt.Errorf("failed to get JWT claims")
+		return "", fmt.Errorf("failed to get JWT claims")
 	}
 
 	claimsMap, ok := claims.(jwt.MapClaims)
 	if !ok {
-		return "", "", fmt.Errorf("failed to get JWT claims")
+		return "", fmt.Errorf("failed to get JWT claims")
 	}
 
 	userID, ok = claimsMap["sub"].(string)
 	if !ok {
-		return "", "", fmt.Errorf("failed to get JWT claims")
+		return "", fmt.Errorf("failed to get JWT claims")
 	}
 
-	username, ok = claimsMap["user_name"].(string)
-	if !ok {
-		return "", "", fmt.Errorf("failed to get JWT claims")
-	}
-
-	return userID, username, nil
+	return userID, nil
 }
 
 func (h *HttpTrainingHandler) RegisterRoutes(middleware gin.HandlerFunc, router *gin.Engine) {
 	router.POST("/trainings", middleware, h.ScheduleTraining)
+	router.GET("/trainings", middleware, h.GetTrainings)
 }
