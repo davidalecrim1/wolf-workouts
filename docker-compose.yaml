@@ -75,6 +75,60 @@ services:
     networks:
       - wolf-workouts-network
 
+  trainer-db-mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - ./scripts/database/trainer/init.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - wolf-workouts-network
+
+  trainer-grpc-api:
+    build:
+      context: ./internal/trainer
+      target: dev
+    volumes:
+      - ./internal/trainer:/app
+    environment:
+      - TRAINER_MONGODB_ENDPOINT=${TRAINER_MONGODB_ENDPOINT}
+      - TRAINER_MONGODB_DATABASE=${TRAINER_MONGODB_DATABASE}
+      - TRAINER_MONGODB_COLLECTION_HOURS=${TRAINER_MONGODB_COLLECTION_HOURS}
+      - TRAINER_MONGODB_COLLECTION_DATES=${TRAINER_MONGODB_COLLECTION_DATES}
+      - TRAINER_SERVER_TYPE=grpc
+      - TRAINER_API_PORT=8083
+      - LOG_LEVEL=${LOG_LEVEL}
+    ports:
+      - "8083:8083"
+    depends_on:
+      - trainer-db-mongodb
+    networks:
+      - wolf-workouts-network
+
+  trainer-http-api:
+    build:
+      context: ./internal/trainer
+      target: dev
+    volumes:
+      - ./internal/trainer:/app
+    environment:
+      - TRAINER_MONGODB_ENDPOINT=${TRAINER_MONGODB_ENDPOINT}
+      - TRAINER_MONGODB_DATABASE=${TRAINER_MONGODB_DATABASE}
+      - TRAINER_MONGODB_COLLECTION_HOURS=${TRAINER_MONGODB_COLLECTION_HOURS}
+      - TRAINER_MONGODB_COLLECTION_DATES=${TRAINER_MONGODB_COLLECTION_DATES}
+      - TRAINER_SERVER_TYPE=http
+      - TRAINER_API_PORT=8082
+      - LOG_LEVEL=${LOG_LEVEL}
+    ports:
+      - "8082:8082"
+    depends_on:
+      - trainer-db-mongodb
+    networks:
+      - wolf-workouts-network
+
 networks:
   wolf-workouts-network:
     driver: bridge

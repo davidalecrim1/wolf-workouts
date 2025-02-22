@@ -13,3 +13,7 @@ generate-openapi:
 
 	@mkdir -p internal/trainings/handler/generated
 	oapi-codegen -package generated -generate types api/openapi/trainings.yaml > internal/trainings/handler/generated/openapi_types.gen.go
+
+generate-grpc:
+	@mkdir -p internal/trainer/handler/generated
+	protoc ./api/protobuf/*.proto --go_out=. --go-grpc_out=.

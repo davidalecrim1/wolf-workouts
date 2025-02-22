@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package trainer;
+
+option go_package = "internal/trainer/handler/generated"; // go package name
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service TrainerService {
+    rpc ScheduleTraining(ScheduleHourRequest) returns (google.protobuf.Empty) {}
+    rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {}
+}
+
+message ScheduleHourRequest {
+    google.protobuf.Timestamp time = 1;
+}
+
+message HealthCheckResponse {
+    string message = 1;
+}
