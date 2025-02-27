@@ -13,7 +13,7 @@ const (
 var allowedDaysToScheduleFromNow = 7
 
 type Hour struct {
-	hour         time.Time
+	Hour         time.Time
 	availability Availability
 }
 
@@ -23,7 +23,7 @@ func NewAvailableHour(hour time.Time) (*Hour, error) {
 	}
 
 	return &Hour{
-		hour:         hour,
+		Hour:         hour,
 		availability: Available,
 	}, nil
 }
@@ -53,4 +53,8 @@ func (h *Hour) ScheduleTraining() error {
 
 	h.availability = TrainingScheduled
 	return nil
+}
+
+func (h *Hour) GetAvailability() Availability {
+	return h.availability
 }

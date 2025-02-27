@@ -15,5 +15,8 @@ generate-openapi:
 	oapi-codegen -package generated -generate types api/openapi/trainings.yaml > internal/trainings/handler/generated/openapi_types.gen.go
 
 generate-grpc:
+	@protoc --version > /dev/null 2>&1 || go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	@protoc-gen-go-grpc --version > /dev/null 2>&1 || go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	
 	@mkdir -p internal/trainer/handler/generated
 	protoc ./api/protobuf/*.proto --go_out=. --go-grpc_out=.
