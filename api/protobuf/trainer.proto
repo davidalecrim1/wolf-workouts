@@ -5,7 +5,6 @@ package trainer;
 option go_package = "internal/trainer/handler/generated"; // go package name
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 
 service TrainerService {
     rpc ScheduleTraining(ScheduleHourRequest) returns (google.protobuf.Empty) {}
@@ -13,7 +12,7 @@ service TrainerService {
 }
 
 message ScheduleHourRequest {
-    google.protobuf.Timestamp time = 1;
+    string time = 1;
 }
 
 message HealthCheckResponse {

@@ -25,12 +25,12 @@ func NewScheduleTrainingHandler(repo WriteRepository) *ScheduleTrainingHandler {
 }
 
 type ScheduleTrainingCommand struct {
-	timestamp time.Time
+	Timestamp time.Time
 }
 
 func (h *ScheduleTrainingHandler) Handle(ctx context.Context, cmd *ScheduleTrainingCommand) error {
 	hour, err := domain.NewAvailableHour(
-		cmd.timestamp,
+		cmd.Timestamp,
 	)
 	if err != nil {
 		return err

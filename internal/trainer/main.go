@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davidalecrim1/wolf-workouts/internal/trainer/adapter"
+	"github.com/davidalecrim1/wolf-workouts/internal/trainer/app/command"
 	"github.com/davidalecrim1/wolf-workouts/internal/trainer/handler"
 	gen "github.com/davidalecrim1/wolf-workouts/internal/trainer/handler/generated"
 	"github.com/gin-gonic/gin"
@@ -26,21 +28,21 @@ func main() {
 		ApplyURI(mongoEndpoint).
 		SetServerSelectionTimeout(5 * time.Second)
 
-	client, err := mongo.Connect(ctx, opts)
+	mongoDbClient, err := mongo.Connect(ctx, opts)
 	if err != nil {
 		slog.Error("failed to create MongoDB client", "error", err)
 		panic(err)
 	}
-	defer client.Disconnect(ctx)
+	defer mongoDbClient.Disconnect(ctx)
 
-	err = client.Ping(ctx, nil)
+	err = mongoDbClient.Ping(ctx, nil)
 	if err != nil {
 		slog.Error("failed to ping MongoDB", "error", err)
 		panic(err)
 	}
 
-	trainerDatabase := client.Database(os.Getenv("TRAINER_MONGODB_DATABASE"))
-	_ = trainerDatabase.Collection(os.Getenv("TRAINER_MONGODB_COLLECTION_HOURS"))
+	trainerDatabase := mongoDbClient.Database(os.Getenv("TRAINER_MONGODB_DATABASE"))
+	hoursCollection := trainerDatabase.Collection(os.Getenv("TRAINER_MONGODB_COLLECTION_HOURS"))
 	_ = trainerDatabase.Collection(os.Getenv("TRAINER_MONGODB_COLLECTION_DATES"))
 	slog.Info("successfully connected to MongoDB")
 
@@ -51,7 +53,7 @@ func main() {
 	case "http":
 		router := gin.Default()
 
-		trainerHandler := handler.NewTrainerHttpHandler(client)
+		trainerHandler := handler.NewTrainerHttpHandler(mongoDbClient)
 		trainerHandler.RegisterRoutes(router)
 
 		slog.Info(fmt.Sprintf("starting to listen for %v on port %v", serverType, port))
@@ -70,7 +72,12 @@ func main() {
 			os.Exit(1)
 		}
 
-		trainerHandler := handler.NewTrainerGrpcHandler(client)
+		hoursRepo := adapter.NewHourMongoDbRepository(hoursCollection)
+		cmdSth := command.NewScheduleTrainingHandler(
+			hoursRepo,
+		)
+
+		trainerHandler := handler.NewTrainerGrpcHandler(mongoDbClient, cmdSth)
 		gen.RegisterTrainerServiceServer(s, trainerHandler)
 
 		slog.Info(fmt.Sprintf("starting to listen for %v on port %v", serverType, port))
