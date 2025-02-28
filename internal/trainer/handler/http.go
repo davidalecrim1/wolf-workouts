@@ -9,20 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// func httpHealthCheck(db *mongo.Client) gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		ctx := context.Background()
-
-// 		err := db.Ping(ctx, nil)
-// 		if err != nil {
-// 			c.JSON(http.StatusInternalServerError, gin.H{"message": "Database connection failed"})
-// 			return
-// 		}
-
-// 		c.JSON(http.StatusOK, gin.H{"message": "OK"})
-// 	}
-// }
-
 type TrainerHttpHandler struct {
 	db *mongo.Client
 }
